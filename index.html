@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Law Edu Kit - Smart Digital Citizenship</title>
-    <!-- Dependencies -->
+    <title>Law Edu Kit - Portal Literasi Digital</title>
+    <!-- Dependencies: React, Tailwind, Lucide Icons -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -21,6 +21,7 @@
             padding: 0;
         }
 
+        /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -29,17 +30,7 @@
         .animate-zoom-in { animation: zoomIn 0.3s ease-out; }
         .animate-slide-up { animation: slideInUp 0.4s ease-out; }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
+        /* Mobile Layout Guard */
         .phone-container {
             height: 100vh;
             max-width: 450px;
@@ -47,7 +38,21 @@
             background: white;
             position: relative;
             box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -56,94 +61,28 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Custom Icon Component
+        // Reusable Lucide Icon Component
         const Icon = ({ name, size = 20, className = "", strokeWidth = 2 }) => {
             useEffect(() => {
-                // Trigger lucide to replace the data-lucide icons
                 if (window.lucide) {
                     window.lucide.createIcons();
                 }
-            }, [name, size, className]);
+            }, [name]);
 
-            return <i data-lucide={name} className={className} style={{ width: size, height: size, display: 'inline-block' }}></i>;
+            return <i data-lucide={name} className={className} style={{ width: size, height: size, display: 'inline-block' }} stroke-width={strokeWidth}></i>;
         };
 
         const App = () => {
             const [activeTab, setActiveTab] = useState('beranda');
             const [activeMateriDetail, setActiveMateriDetail] = useState(null);
-            const [kuisStep, setKuisStep] = useState(0); 
-            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-            const [selectedOption, setSelectedOption] = useState(null);
+            
+            // App state for Quizzes/Simulations
+            const [kuisStep, setKuisStep] = useState(0);
             const [score, setScore] = useState(0);
-            const [showFeedback, setShowFeedback] = useState(false);
-            const [simStep, setSimStep] = useState(0);
-            const [simFeedback, setSimFeedback] = useState(null);
 
             const logoUrl = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgBENwUGD91BGHhUBoMcXoE5lf0ZrT2rdSJVWEjkldYTAzOzC7MChAwupawsX8Slc4Kk33LjTTYd4WLZQcYQ28WAxYOllfZp1pYo-q_lX9YlDM9XQrfUGd6zQd65NfDSabb0PMprbxpyou5FVu65d0ocx_w5csdq3quXziggZ7wQGBVycQ2g5Tme_g82PIl/w200-h200/Desain%20tanpa%20judul%20(6).png";
 
-            const kuisData = [
-                {
-                    question: "Apa prinsip utama dalam etika digital yang dikenal dengan istilah 'THINK' sebelum mengunggah sesuatu?",
-                    options: [
-                        { id: 'A', text: 'Total, Honest, Icon, New, Kind' },
-                        { id: 'B', text: 'True, Helpful, Inspiring, Necessary, Kind', correct: true },
-                        { id: 'C', text: 'Tough, High, Intelligent, Nice, Knowledge' }
-                    ]
-                },
-                {
-                    question: "Berikut yang termasuk pelanggaran hukum di media sosial adalah...",
-                    options: [
-                        { id: 'A', text: 'Membagikan konten positif' },
-                        { id: 'B', text: 'Menyebarkan hoaks yang merugikan orang lain', correct: true },
-                        { id: 'C', text: 'Memberi komentar yang membangun' }
-                    ]
-                },
-                {
-                    question: "Kamu menemukan foto teman yang sangat lucu tapi memalukan. Apa yang seharusnya kamu lakukan?",
-                    options: [
-                        { id: 'A', text: 'Langsung unggah, kan hanya bercanda' },
-                        { id: 'B', text: 'Izin kepada teman tersebut sebelum mengunggahnya', correct: true },
-                        { id: 'C', text: 'Edit mukanya agar tidak terlalu dikenali baru unggah' }
-                    ]
-                }
-            ];
-
-            const resetKuis = () => {
-                setKuisStep(0);
-                setCurrentQuestionIndex(0);
-                setSelectedOption(null);
-                setScore(0);
-                setShowFeedback(false);
-            };
-
-            const handleKuisNext = () => {
-                if (selectedOption === null) return;
-                const currentQuestion = kuisData[currentQuestionIndex];
-                const selectedObj = currentQuestion.options[selectedOption];
-                
-                if (selectedObj?.correct) setScore(prev => prev + 1);
-                setShowFeedback(true);
-                
-                setTimeout(() => {
-                    setShowFeedback(false);
-                    setSelectedOption(null);
-                    if (currentQuestionIndex < kuisData.length - 1) {
-                        setCurrentQuestionIndex(prev => prev + 1);
-                    } else {
-                        setKuisStep(2);
-                    }
-                }, 1200);
-            };
-
-            const handleSimChoice = (isCorrect) => {
-                setSimFeedback(isCorrect ? 'correct' : 'wrong');
-                setTimeout(() => {
-                    if (isCorrect) setSimStep(prev => prev + 1);
-                    setSimFeedback(null);
-                }, 2000);
-            };
-
-            // Views Components
+            // Views
             const BerandaView = () => (
                 <div className="space-y-6 animate-fade-in">
                     <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-xl">
@@ -159,9 +98,7 @@
                     </div>
 
                     <section>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-widest">Menu Utama</h3>
-                        </div>
+                        <h3 className="font-extrabold text-slate-800 text-[10px] uppercase tracking-widest mb-4">Menu Utama</h3>
                         <div className="grid grid-cols-4 gap-3">
                             {[
                                 { id: 'materi', label: 'Materi', icon: 'book-open', color: 'bg-blue-500' },
@@ -205,17 +142,27 @@
                 if (activeMateriDetail) {
                     return (
                         <div className="animate-fade-in space-y-6">
-                            <div className="bg-blue-50 p-6 rounded-3xl">
-                                <h4 className="font-bold text-blue-800 mb-2">Detail Materi: {activeMateriDetail.title}</h4>
-                                <p className="text-sm text-blue-700 leading-relaxed">{activeMateriDetail.desc}</p>
+                            <div className={`p-6 rounded-3xl text-white ${activeMateriDetail.color}`}>
+                                <h4 className="font-bold mb-2 text-lg">{activeMateriDetail.title}</h4>
+                                <p className="text-xs opacity-90 leading-relaxed">{activeMateriDetail.desc}</p>
                             </div>
-                            <button onClick={() => setActiveMateriDetail(null)} className="w-full bg-slate-100 py-3 rounded-2xl text-slate-600 font-bold text-xs uppercase tracking-wider">Kembali ke Daftar</button>
+                            
+                            <div className="space-y-4">
+                                <h5 className="font-bold text-slate-800 text-sm">Pembahasan Materi:</h5>
+                                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-slate-600 text-xs leading-relaxed">
+                                    Konten edukasi detail mengenai {activeMateriDetail.title} akan ditampilkan di sini. Meliputi panduan, tips, dan dasar hukum yang berlaku di Indonesia.
+                                </div>
+                            </div>
+
+                            <button onClick={() => setActiveMateriDetail(null)} className="w-full bg-slate-100 py-3 rounded-2xl text-slate-600 font-bold text-xs uppercase tracking-wider">
+                                Kembali ke Daftar
+                            </button>
                         </div>
                     );
                 }
 
                 return (
-                    <div className="space-y-4 animate-slide-up">
+                    <div id="main-menu" className="space-y-4 animate-slide-up">
                         {materiItems.map((item) => (
                             <button 
                                 key={item.id} 
@@ -238,17 +185,17 @@
 
             const ToolkitView = () => (
                 <div className="space-y-4 animate-slide-up">
-                    <h2 className="font-extrabold text-lg uppercase">Digital Toolkit</h2>
+                    <h2 className="font-extrabold text-lg uppercase px-1">Digital Toolkit</h2>
                     {[
-                        { t: 'Cek Hoaks', d: 'Deteksi kebenaran berita.', i: 'search', bg: 'bg-sky-50', c: 'text-sky-500' },
-                        { t: 'Pass Security', d: 'Kekuatan kata sandimu.', i: 'shield-check', bg: 'bg-emerald-50', c: 'text-emerald-500' },
-                        { t: 'Lapor Cyber', d: 'Panduan melapor pelecehan.', i: 'file-text', bg: 'bg-indigo-50', c: 'text-indigo-500' },
+                        { t: 'Cek Hoaks', d: 'Deteksi kebenaran berita melalui portal terpercaya.', i: 'search', bg: 'bg-sky-50', c: 'text-sky-500' },
+                        { t: 'Pass Security', d: 'Cek seberapa kuat kata sandi yang kamu miliki.', i: 'shield-check', bg: 'bg-emerald-50', c: 'text-emerald-500' },
+                        { t: 'Lapor Cyber', d: 'Panduan melapor konten negatif & pelecehan.', i: 'file-text', bg: 'bg-indigo-50', c: 'text-indigo-500' },
                     ].map((item, idx) => (
                         <div key={idx} className="bg-white p-5 rounded-3xl border border-slate-100 flex items-center gap-4 shadow-sm">
                             <div className={`${item.bg} p-4 rounded-2xl`}><Icon name={item.i} size={24} className={item.c} /></div>
                             <div className="flex-1">
                                 <p className="text-sm font-extrabold uppercase">{item.t}</p>
-                                <p className="text-[10px] text-slate-400">{item.d}</p>
+                                <p className="text-[10px] text-slate-400 leading-tight">{item.d}</p>
                             </div>
                             <Icon name="external-link" size={16} className="text-slate-200" />
                         </div>
@@ -256,18 +203,17 @@
                 </div>
             );
 
+            // App Core Structure
             return (
-                <div className="phone-container flex flex-col overflow-hidden">
+                <div className="phone-container">
                     {/* Header */}
                     <header className="bg-white px-5 py-4 flex items-center justify-between border-b border-slate-50 sticky top-0 z-50">
                         <div className="flex items-center gap-3">
                             {activeTab !== 'beranda' || activeMateriDetail ? (
                                 <button onClick={() => {
                                     if (activeMateriDetail) setActiveMateriDetail(null);
-                                    else if (activeTab === 'kuis' && kuisStep > 0) setKuisStep(0);
-                                    else if (activeTab === 'simulasi' && simStep > 0) setSimStep(0);
                                     else setActiveTab('beranda');
-                                }} className="p-2 bg-slate-50 rounded-full text-blue-600">
+                                }} className="p-2 bg-slate-50 rounded-full text-blue-600 active:scale-90 transition-transform">
                                     <Icon name="arrow-left" size={18} />
                                 </button>
                             ) : (
@@ -276,116 +222,39 @@
                                 </div>
                             )}
                             <div>
-                                <h1 className="text-xs font-black text-slate-900 uppercase tracking-tighter">
-                                    {activeMateriDetail ? activeMateriDetail.title : (activeTab === 'beranda' ? 'Law Edu Kit' : activeTab)}
+                                <h1 className="text-xs font-black text-slate-900 uppercase tracking-tighter leading-none">
+                                    {activeMateriDetail ? 'Materi Detail' : (activeTab === 'beranda' ? 'Law Edu Kit' : activeTab)}
                                 </h1>
-                                {activeTab === 'beranda' && !activeMateriDetail && <p className="text-[8px] text-blue-500 font-black uppercase tracking-widest">Smart Citizen</p>}
+                                {activeTab === 'beranda' && !activeMateriDetail && <p className="text-[8px] text-blue-500 font-black uppercase tracking-widest mt-1">Smart Citizen</p>}
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <button className="p-2 text-slate-400"><Icon name="bell" size={18} /></button>
+                            <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Icon name="bell" size={18} /></button>
                         </div>
                     </header>
 
-                    {/* Main Content */}
+                    {/* Content Container */}
                     <main className="flex-1 overflow-y-auto px-5 py-6 pb-28">
                         {activeTab === 'beranda' && <BerandaView />}
                         {activeTab === 'materi' && <MateriView />}
                         {activeTab === 'toolkit' && <ToolkitView />}
-                        
-                        {activeTab === 'kuis' && (
-                            <div className="h-full">
-                                {kuisStep === 0 && (
-                                    <div className="flex flex-col items-center justify-center text-center space-y-6 py-6 animate-zoom-in">
-                                        <div className="w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 border-4 border-white shadow-lg">
-                                            <Icon name="trophy" size={60} />
-                                        </div>
-                                        <h2 className="text-xl font-black text-slate-900 uppercase">Kuis Hukum Digital</h2>
-                                        <p className="text-slate-500 text-xs px-8 font-medium italic">Uji pengetahuanmu tentang aturan di dunia maya.</p>
-                                        <button onClick={() => setKuisStep(1)} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg">Mulai Sekarang</button>
-                                    </div>
-                                )}
-                                {kuisStep === 1 && (
-                                    <div className="space-y-6 animate-fade-in">
-                                        <div className="flex justify-between text-[10px] font-black text-blue-900 uppercase">
-                                            <span>Soal {currentQuestionIndex + 1} / {kuisData.length}</span>
-                                            <span>Skor: {score * 10}</span>
-                                        </div>
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <h3 className="font-bold text-slate-800 text-md">{kuisData[currentQuestionIndex].question}</h3>
-                                        </div>
-                                        <div className="space-y-3">
-                                            {kuisData[currentQuestionIndex].options.map((opt, i) => (
-                                                <button 
-                                                    key={i} 
-                                                    disabled={showFeedback}
-                                                    onClick={() => setSelectedOption(i)}
-                                                    className={`w-full p-4 rounded-2xl border text-left text-xs font-bold transition-all flex items-center gap-3
-                                                        ${selectedOption === i ? 'border-blue-600 bg-blue-50 text-blue-700' : 'bg-white border-slate-100 text-slate-600'}
-                                                        ${showFeedback && opt.correct ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : ''}
-                                                    `}
-                                                >
-                                                    <span className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">{opt.id}</span>
-                                                    {opt.text}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button 
-                                            disabled={selectedOption === null || showFeedback}
-                                            onClick={handleKuisNext}
-                                            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg disabled:bg-slate-200"
-                                        >
-                                            {currentQuestionIndex === kuisData.length - 1 ? 'Lihat Hasil' : 'Selanjutnya'}
-                                        </button>
-                                    </div>
-                                )}
-                                {kuisStep === 2 && (
-                                    <div className="flex flex-col items-center text-center py-6 animate-zoom-in">
-                                        <div className="w-32 h-32 bg-blue-600 rounded-full flex flex-col items-center justify-center text-white border-8 border-blue-50 shadow-xl mb-6">
-                                            <span className="text-4xl font-black">{Math.round((score/kuisData.length)*100)}</span>
-                                        </div>
-                                        <h2 className="text-xl font-black uppercase mb-2">Hasil Selesai!</h2>
-                                        <p className="text-slate-500 text-xs mb-8">Teruslah belajar untuk menjadi warga digital yang lebih baik.</p>
-                                        <button onClick={() => setActiveTab('beranda')} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg">Kembali ke Beranda</button>
-                                    </div>
-                                )}
+                        {activeTab === 'simulasi' && (
+                            <div className="text-center py-20 animate-zoom-in">
+                                <Icon name="zap" size={60} className="text-emerald-500 mx-auto mb-4" />
+                                <h3 className="text-lg font-black uppercase">Fitur Simulasi</h3>
+                                <p className="text-slate-400 text-xs px-10 mt-2">Segera hadir skenario interaktif untuk melatih responmu terhadap kasus hukum digital.</p>
                             </div>
                         )}
-
-                        {activeTab === 'simulasi' && (
-                            <div className="h-full animate-slide-up">
-                                {simStep === 0 ? (
-                                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                                        <span className="text-[10px] font-black text-emerald-600 uppercase mb-4 block tracking-widest">Skenario Kasus #1</span>
-                                        <p className="text-sm font-bold text-slate-800 mb-6">Kamu melihat temanmu sedang dirundung (bully) di grup pesan sekolah. Apa tindakanmu?</p>
-                                        <div className="space-y-3">
-                                            {[
-                                                { t: 'Ikut mengomentari biar seru', c: false },
-                                                { t: 'Segera ingatkan teman & bela korban', c: true },
-                                                { t: 'Diam saja agar tidak terlibat', c: false },
-                                            ].map((opt, i) => (
-                                                <button key={i} disabled={simFeedback} onClick={() => handleSimChoice(opt.c)} 
-                                                    className={`w-full p-4 rounded-2xl border-2 text-left text-xs font-bold transition-all 
-                                                        ${simFeedback === 'correct' && opt.c ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 
-                                                          simFeedback === 'wrong' && !opt.c ? 'border-rose-500 bg-rose-50 text-rose-700' : 'bg-slate-50 border-transparent'}`}>
-                                                    {opt.t}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-10">
-                                        <Icon name="check-circle" size={60} className="text-emerald-500 mx-auto mb-4" />
-                                        <h3 className="text-lg font-black uppercase">Sangat Bagus!</h3>
-                                        <p className="text-slate-500 text-xs mt-2 mb-8 px-6">Tindakanmu membantu menciptakan lingkungan digital yang sehat.</p>
-                                        <button onClick={() => setSimStep(0)} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold">Main Lagi</button>
-                                    </div>
-                                )}
+                        {activeTab === 'kuis' && (
+                            <div className="text-center py-20 animate-zoom-in">
+                                <Icon name="trophy" size={60} className="text-amber-500 mx-auto mb-4" />
+                                <h3 className="text-lg font-black uppercase">Uji Pemahaman</h3>
+                                <p className="text-slate-400 text-xs px-10 mt-2">Segera hadir berbagai kuis menantang untuk mengukur pengetahuan digitalmu.</p>
                             </div>
                         )}
                     </main>
 
-                    {/* Bottom Navigation */}
+                    {/* Bottom Nav */}
                     <nav className="glass-nav border-t border-slate-50 flex justify-around py-3 absolute bottom-0 w-full z-50">
                         {[
                             { id: 'beranda', icon: 'home', label: 'Home' },
@@ -398,7 +267,6 @@
                                 onClick={() => {
                                     setActiveTab(tab.id);
                                     setActiveMateriDetail(null);
-                                    if (tab.id === 'kuis') resetKuis();
                                 }}
                                 className={`flex flex-col items-center gap-1 transition-all flex-1 ${
                                     activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'
